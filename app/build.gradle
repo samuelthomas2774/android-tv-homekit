@@ -1,0 +1,60 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 25
+
+    defaultConfig {
+        applicationId "uk.org.fancy.AndroidTvHomeKit"
+        minSdkVersion 19
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+        }
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'libs/hap/src/main/java'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    packagingOptions {
+        exclude 'META-INF/INDEX.LIST'
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compileOnly fileTree(include: ['*.jar'], dir: 'compile-libs')
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:design:25.3.1'
+    // Architecture Components
+    compile 'android.arch.lifecycle:runtime:1.0.0-alpha3'
+    compile 'android.arch.lifecycle:extensions:1.0.0-alpha3'
+    annotationProcessor 'android.arch.lifecycle:compiler:1.0.0-alpha3'
+
+    // hap-java
+    // implementation 'com.beowulfe.hap:hap:1.1.5'
+    implementation 'org.slf4j:slf4j-api:1.7.10'
+    implementation 'io.netty:netty-all:4.0.32.Final'
+    implementation 'com.nimbusds:srp6a:1.5.2'
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.51'
+    implementation 'net.vrallev.ecc:ecc-25519-java:1.0.1'
+    // implementation 'org.zeromq:curve25519-java:0.1.0'
+    // implementation 'javax.json:javax.json-api:1.0'
+    implementation 'org.glassfish:javax.json:1.0.4'
+    implementation 'javax.jmdns:jmdns:3.4.1'
+    implementation 'commons-io:commons-io:2.4'
+}

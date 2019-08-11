@@ -1,0 +1,3 @@
+[submodule "app/libs/hap"]
+	path = app/libs/hap
+	url = https://github.com/hap-java/HAP-Java.git
