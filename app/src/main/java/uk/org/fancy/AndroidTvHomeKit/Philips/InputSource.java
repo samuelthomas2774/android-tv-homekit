@@ -3,7 +3,7 @@ package uk.org.fancy.AndroidTvHomeKit.Philips;
 import android.util.Log;
 import uk.org.fancy.AndroidTvHomeKit.InputSourceInterface;
 
-public class InputSource implements InputSourceInterface {
+public abstract class InputSource implements InputSourceInterface {
     private final InputSourceManager inputSourceManager;
 
     public InputSource(InputSourceManager _inputSourceManager) {

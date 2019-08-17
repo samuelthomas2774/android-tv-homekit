@@ -35,6 +35,10 @@ public class InputSourceService implements Service {
         televisionService = television;
     }
 
+    public String getId() {
+        return "InputSource:" + inputSource.getId();
+    }
+
     public String getType() {
         return "000000D9-0000-1000-8000-0026BB765291";
     }

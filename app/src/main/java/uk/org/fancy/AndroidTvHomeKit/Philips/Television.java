@@ -7,6 +7,7 @@ import uk.org.fancy.AndroidTvHomeKit.TelevisionInterface;
 // import org.droidtv.tv.persistentstorage.TvSettingsConstants;
 
 public class Television implements TelevisionInterface {
+    private static final String TAG = "HomeKit:Television";
     public final HomeKitService service;
     private final PowerState powerStateManager = new PowerState(this);
     private final InputSourceManager inputSourceManager;
@@ -87,7 +88,7 @@ public class Television implements TelevisionInterface {
     }
 
     public void sendInputKey(int key) {
-        Log.i("HomeKit:Television", "Send input key " + Integer.toString(key));
+        Log.i(TAG, "Send input key " + Integer.toString(key));
 
         // TODO
     }

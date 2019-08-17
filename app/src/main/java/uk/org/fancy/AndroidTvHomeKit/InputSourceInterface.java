@@ -19,6 +19,8 @@ public interface InputSourceInterface {
         APPLICATION,
     }
 
+    public String getId();
+
     public InputSourceTypes getInputSourceType();
 
     public boolean isConfigured();

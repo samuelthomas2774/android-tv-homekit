@@ -14,12 +14,15 @@ import java.security.InvalidAlgorithmParameterException;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.net.nsd.NsdManager;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
 import io.github.hapjava.HomekitServer;
 import io.github.hapjava.HomekitStandaloneAccessoryServer;
+import io.github.hapjava.impl.HomekitRegistry;
+import io.github.hapjava.impl.HomekitRegistryState;
 
 public class HomeKitService extends Service {
     public static final String HOMEKIT_VERSION = "0.1.0";
@@ -43,9 +46,49 @@ public class HomeKitService extends Service {
                 InetAddress address = InetAddress.getByAddress(new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
                 homekit = new HomekitServer(address, PORT);
                 TelevisionAccessory accessory = new TelevisionAccessory(HomeKitService.this);
-                accessoryServer = homekit.createStandaloneAccessory(authInfo, accessory, 31 /* Television */);
+                Advertiser advertiser = new Advertiser((NsdManager) getSystemService(Context.NSD_SERVICE), 31 /* Television */);
+                accessoryServer = homekit.createStandaloneAccessory(authInfo, accessory, advertiser);
+
+                // Allow unauthenticated requests
+                accessoryServer.getRoot().getRegistry().setAllowUnauthenticatedRequests(true);
             } catch (Exception e) {
                 Log.e(TAG, "Error creating accessory???");
+                e.printStackTrace();
+            }
+
+            boolean shouldWriteRegistryState = true;
+            HomekitRegistryState oldRegistryState = null;
+
+            try {
+                Log.i(TAG, "Loading registry state");
+                FileInputStream fileInputStream = getApplicationContext().openFileInput("registry-state.bin");
+                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+
+                try {
+                    Log.i(TAG, "Restoring registry state");
+                    HomekitRegistryState registryState = (HomekitRegistryState) objectInputStream.readObject();
+                    accessoryServer.getRoot().getRegistry().reset(registryState);
+                    HomekitRegistryState newRegistryState = accessoryServer.getRoot().getRegistry().saveIds(registryState);
+                    if (registryState == newRegistryState) shouldWriteRegistryState = false;
+                    else oldRegistryState = registryState;
+                } finally {
+                    objectInputStream.close();
+                }
+            } catch (FileNotFoundException e) {
+            } catch (IOException e) {
+                Log.i(TAG, "Error reading registry state");
+            } catch (ClassNotFoundException e) {
+                Log.i(TAG, "ClassNotFoundException reading registry state, creating new auth data");
+            }
+
+            try {
+                Log.i(TAG, "Writing registry state");
+                FileOutputStream fileOutputStream = getApplicationContext().openFileOutput("registry-state.bin", 0);
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                objectOutputStream.writeObject(accessoryServer.getRoot().getRegistry().saveIds(oldRegistryState));
+                objectOutputStream.flush();
+                objectOutputStream.close();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 

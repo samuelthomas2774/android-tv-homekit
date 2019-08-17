@@ -74,27 +74,6 @@ public class InputSourceManager implements InputSourceManagerInterface {
             return inputSource;
         }
 
-        // try {
-        //     Class<?> tvInputSourceClass = Class.forName("com.mediatek.twoworlds.tv.MtkTvInputSource");
-        //     Method getInstance = tvInputSourceClass.getMethod("getInstance");
-        //     Object tvInputSource = getInstance.invoke(null);
-        //
-        //     Method getCurrentInputSourceName = tvInputSourceClass.getMethod("getCurrentInputSourceName");
-        //     String inputSourceName = (String) getCurrentInputSourceName.invoke(tvInputSource);
-        //
-        //     // Always seems to return null
-        //     // TODO: look at where the source list gets the active source from
-        //
-        //     Log.i("HomeKit:PowerState", "Current input source name (main) " + inputSourceName);
-        //     // Log.i("HomeKit:PowerState", "Current input source name (sub) " + (String) getCurrentInputSourceName.invoke(tvInputSource, "sub"));
-        //     // Log.i("HomeKit:PowerState", "Current input source name (channel) " + (String) getCurrentInputSourceName.invoke(tvInputSource, "channel"));
-        //
-        //     // return POWER_STATE_FULL_SYSTEM_START.equals(powerState);
-        // } catch (Exception e) {
-        //     Log.i("HomeKit:PowerState", "Error getting power state " + e.toString());
-        //     // return false;
-        // }
-
         Log.i(TAG, "Didn't find active input from ID " + inputid);
 
         for (InputSourceInterface inputSource: inputSources) {

@@ -8,6 +8,7 @@ import android.util.Log;
 import uk.org.fancy.AndroidTvHomeKit.TIFInputSourceInterface;
 
 public class TIFInputSource extends InputSource implements TIFInputSourceInterface {
+    private static final String TAG = "HomeKit:TIFInputSource";
     private final InputSourceManager inputSourceManager;
     public final TvInputInfo tvInputInfo;
 
@@ -19,6 +20,10 @@ public class TIFInputSource extends InputSource implements TIFInputSourceInterfa
     }
 
     public String getId() {
+        return "TIF:" + getTifId();
+    }
+
+    public String getTifId() {
         return tvInputInfo.getId();
     }
 
@@ -73,29 +78,29 @@ public class TIFInputSource extends InputSource implements TIFInputSourceInterfa
     }
 
     public void setConfiguredName(String name) {
-        Log.i("HomeKit:TIFInputSource", "Set configured name " + getName() + " to " + name);
+        Log.i(TAG, "Set configured name " + getName() + " to " + name);
     }
 
     /**
      * Set the current source to this.
      */
     public void activate() {
-        Log.i("HomeKit:TIFInputSource", "Activate " + getName());
+        Log.i(TAG, "Activate TIF " + getName());
 
         Intent intent = new Intent();
         intent.setAction("android.intent.action.VIEW");
 
         if (tvInputInfo.getType() == TvInputInfo.TYPE_TUNER) {
-            Log.i("HomeKit:TIFInputSource", "Switching to tuner source " + tvInputInfo.getId());
+            Log.i(TAG, "Switching to tuner source " + tvInputInfo.getId());
 
             Uri sourceUri3 = TvContract.buildChannelsUriForInput(tvInputInfo.getId());
-            Log.i("HomeKit:TIFInputSource", "TYPE_TUNER sourceUri:" + sourceUri3);
+            Log.i(TAG, "TYPE_TUNER sourceUri:" + sourceUri3);
             intent.setData(sourceUri3);
         } else {
-            Log.i("HomeKit:TIFInputSource", "Switching to non-tuner source " + tvInputInfo.getId());
+            Log.i(TAG, "Switching to non-tuner source " + tvInputInfo.getId());
 
             Uri sourceUri4 = TvContract.buildChannelUriForPassthroughInput(tvInputInfo.getId());
-            Log.i("HomeKit:TIFInputSource", "PASSTHROUGH sourceUri:" + sourceUri4);
+            Log.i(TAG, "PASSTHROUGH sourceUri:" + sourceUri4);
             intent.setData(sourceUri4);
         }
 
