@@ -21,7 +21,6 @@ public class InputSourceService implements Service {
     public final TelevisionAccessory accessory;
     public final InputSourceInterface inputSource;
     private final int identifier;
-    private TelevisionService televisionService;
     private HomekitCharacteristicChangeCallback configuredNameCallback;
     private HomekitCharacteristicChangeCallback isConfiguredCallback;
 
@@ -29,10 +28,6 @@ public class InputSourceService implements Service {
         accessory = _accessory;
         inputSource = _inputSource;
         identifier = _identifier;
-    }
-
-    public void setTelevisionService(TelevisionService television) {
-        televisionService = television;
     }
 
     public String getId() {
@@ -88,14 +83,6 @@ public class InputSourceService implements Service {
         characteristics.add(currentVisibilityState);
 
         return Collections.unmodifiableList(characteristics);
-    }
-
-    public List<Service> getLinkedServices() {
-        List<Service> linkedServices = new LinkedList<>();
-
-        linkedServices.add(televisionService);
-
-        return Collections.unmodifiableList(linkedServices);
     }
 
     public int getIdentifier() {

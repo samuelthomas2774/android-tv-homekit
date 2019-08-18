@@ -34,6 +34,7 @@ public class ActiveIdentifier extends IntegerCharacteristic implements Eventable
     protected CompletableFuture<JsonObjectBuilder> makeBuilder(int iid) {
         return super.makeBuilder(iid).thenApply(builder -> {
             return builder
+                .add("format", "uint32")
                 .add("minStep", 1);
         });
     }

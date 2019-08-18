@@ -6,6 +6,7 @@ import io.github.hapjava.impl.ExceptionalConsumer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import javax.json.Json;
 import javax.json.JsonObjectBuilder;
 
 public class Identifier extends IntegerCharacteristic {
@@ -21,7 +22,14 @@ public class Identifier extends IntegerCharacteristic {
     @Override
     protected CompletableFuture<JsonObjectBuilder> makeBuilder(int iid) {
         return super.makeBuilder(iid).thenApply(builder -> {
-            return builder
+            return Json.createObjectBuilder()
+                .add("iid", iid)
+                .add("type", "E6")
+                .add("perms", Json.createArrayBuilder().add("pr").build())
+                .add("format", "uint32")
+                .add("ev", false)
+                .add("description", "Identifier")
+                .add("value", builder.build().getInt("value"))
                 .add("minValue", 0)
                 .add("minStep", 1);
         });

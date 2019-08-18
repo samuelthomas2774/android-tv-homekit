@@ -89,7 +89,6 @@ public class TelevisionAccessory implements HomekitAccessory, Bridge {
 		// ...
 
 		for (InputSourceService inputSourceService: inputSourceServices) {
-			inputSourceService.setTelevisionService(television);
 			services.add(inputSourceService);
 		}
 
