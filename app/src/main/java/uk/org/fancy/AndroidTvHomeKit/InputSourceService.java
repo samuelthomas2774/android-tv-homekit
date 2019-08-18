@@ -12,6 +12,7 @@ import uk.org.fancy.AndroidTvHomeKit.characteristics.InputSourceType;
 import uk.org.fancy.AndroidTvHomeKit.characteristics.IsConfigured;
 import uk.org.fancy.AndroidTvHomeKit.characteristics.CurrentVisibilityState;
 import uk.org.fancy.AndroidTvHomeKit.characteristics.TIFID;
+import uk.org.fancy.AndroidTvHomeKit.characteristics.ApplicationID;
 import io.github.hapjava.Service;
 import io.github.hapjava.characteristics.Characteristic;
 import io.github.hapjava.HomekitCharacteristicChangeCallback;
@@ -44,6 +45,10 @@ public class InputSourceService implements Service {
         if (inputSource instanceof TIFInputSourceInterface) {
             Characteristic tifid = new TIFID(((TIFInputSourceInterface) inputSource).getId());
             characteristics.add(tifid);
+        }
+        if (inputSource instanceof ApplicationInputSourceInterface) {
+            Characteristic applicationId = new ApplicationID(((ApplicationInputSourceInterface) inputSource).getId());
+            characteristics.add(applicationId);
         }
 
         // Name

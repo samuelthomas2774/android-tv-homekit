@@ -32,6 +32,7 @@ android {
 
     packagingOptions {
         exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/io.netty.versions.properties'
     }
 }
 
@@ -45,10 +46,12 @@ dependencies {
     compile 'android.arch.lifecycle:extensions:1.0.0-alpha3'
     annotationProcessor 'android.arch.lifecycle:compiler:1.0.0-alpha3'
 
+    implementation 'org.asynchttpclient:async-http-client:2.10.1'
+
     // hap-java
     // implementation 'com.beowulfe.hap:hap:1.1.5'
-    implementation 'org.slf4j:slf4j-api:1.7.10'
-    implementation 'io.netty:netty-all:4.0.32.Final'
+    // implementation 'org.slf4j:slf4j-api:1.7.10'
+    // implementation 'io.netty:netty-all:4.0.32.Final'
     implementation 'com.nimbusds:srp6a:1.5.2'
     implementation 'org.bouncycastle:bcprov-jdk15on:1.51'
     implementation 'net.vrallev.ecc:ecc-25519-java:1.0.1'

@@ -112,18 +112,19 @@ public class TelevisionService implements Service {
     }
 
     public CompletableFuture<Integer> getActiveIdentifier() {
-        InputSourceInterface activeInputSource = accessory.service.implementation.getInputSourceManager().getActiveInput();
-        InputSourceService activeInputSourceService = null;
+        return accessory.service.implementation.getInputSourceManager().getActiveInput().thenApply(activeInputSource -> {
+            InputSourceService activeInputSourceService = null;
 
-        for (InputSourceService inputSourceService: inputSourceServices) {
-            if (inputSourceService.inputSource == activeInputSource) activeInputSourceService = inputSourceService;
-        }
+            for (InputSourceService inputSourceService: inputSourceServices) {
+                if (inputSourceService.inputSource == activeInputSource) activeInputSourceService = inputSourceService;
+            }
 
-        if (activeInputSourceService == null) {
-            return CompletableFuture.completedFuture(null);
-        }
+            if (activeInputSourceService == null) {
+                return null;
+            }
 
-        return CompletableFuture.completedFuture(activeInputSourceService.getIdentifier());
+            return activeInputSourceService.getIdentifier();
+        });
     }
 
     public void setActiveIdentifier(int activeIdentifier) {

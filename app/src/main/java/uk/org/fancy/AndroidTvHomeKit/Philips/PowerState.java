@@ -3,6 +3,7 @@ package uk.org.fancy.AndroidTvHomeKit.Philips;
 import java.lang.reflect.Method;
 import android.util.Log;
 import uk.org.fancy.AndroidTvHomeKit.PowerStateInterface;
+import uk.org.fancy.AndroidTvHomeKit.Philips.xtv.XTvHttp;
 import io.github.hapjava.HomekitCharacteristicChangeCallback;
 
 public class PowerState implements PowerStateInterface {
@@ -52,6 +53,7 @@ public class PowerState implements PowerStateInterface {
         Log.i("HomeKit:PowerState", "Set power state " + on);
 
         // TODO
+        television.xtvhttp.setPowerState(on ? XTvHttp.PowerState.ON : XTvHttp.PowerState.STANDBY);
     }
 
     public void onSubscribe(HomekitCharacteristicChangeCallback _callback) {
