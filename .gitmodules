@@ -1,6 +1,3 @@
 [submodule "app/libs/hap"]
 	path = app/libs/hap
 	url = https://gitlab.fancy.org.uk/samuel/hap-java.git
-[submodule "app/libs/netty-http-client"]
-	path = app/libs/netty-http-client
-	url = https://github.com/timboudreau/netty-http-client.git
