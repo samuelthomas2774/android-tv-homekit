@@ -97,7 +97,7 @@ public class InputSourceService implements Service {
     public CompletableFuture<String> getConfiguredName() {
         String name = inputSource.getConfiguredName();
 
-        Log.i("HomeKit:InputSourceService", "getConfiguredName: " + name);
+        // Log.i("HomeKit:InputSourceService", "getConfiguredName: " + name);
 		return CompletableFuture.completedFuture(name == null ? "" : name);
     }
 

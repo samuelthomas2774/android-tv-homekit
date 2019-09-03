@@ -70,11 +70,13 @@ public class TIFInputSource extends InputSource implements TIFInputSourceInterfa
     }
 
     public String getConfiguredName() {
-        CharSequence customLabel = tvInputInfo.loadCustomLabel(inputSourceManager.television.service);
+        // CharSequence customLabel = tvInputInfo.loadCustomLabel(inputSourceManager.television.service);
+        //
+        // if (customLabel == null) return null;
+        //
+        // return customLabel.toString();
 
-        if (customLabel == null) return null;
-
-        return customLabel.toString();
+        return null;
     }
 
     public void setConfiguredName(String name) {
