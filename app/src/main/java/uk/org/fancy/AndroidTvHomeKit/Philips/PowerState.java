@@ -7,6 +7,7 @@ import uk.org.fancy.AndroidTvHomeKit.Philips.xtv.XTvHttp;
 import io.github.hapjava.HomekitCharacteristicChangeCallback;
 
 public class PowerState implements PowerStateInterface {
+    private static final String TAG = "HomeKit:PowerState";
     private final Television television;
     private HomekitCharacteristicChangeCallback callback = null;
 
@@ -44,13 +45,13 @@ public class PowerState implements PowerStateInterface {
 
             return POWER_STATE_FULL_SYSTEM_START.equals(powerState);
         } catch (Exception e) {
-            Log.i("HomeKit:PowerState", "Error getting power state " + e.toString());
+            Log.i(TAG, "Error getting power state " + e.toString());
             return false;
         }
     }
 
     public void setPowerState(boolean on) {
-        Log.i("HomeKit:PowerState", "Set power state " + on);
+        Log.i(TAG, "Set power state " + on);
 
         // TODO
         television.xtvhttp.setPowerState(on ? XTvHttp.PowerState.ON : XTvHttp.PowerState.STANDBY);

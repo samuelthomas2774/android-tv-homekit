@@ -19,9 +19,10 @@ public class ActiveIdentifier extends IntegerCharacteristic implements Eventable
         Supplier<CompletableFuture<Integer>> getter,
         ExceptionalConsumer<Integer> setter,
         Consumer<HomekitCharacteristicChangeCallback> subscriber,
-        Runnable unsubscriber
+        Runnable unsubscriber,
+        int maxValue
     ) {
-        super("000000E7-0000-1000-8000-0026BB765291", true, true, "Active Identifier", 0, 0, "");
+        super("000000E7-0000-1000-8000-0026BB765291", true, true, "Active Identifier", 0, maxValue, "");
 
         this.getter = getter;
         this.setter = setter;

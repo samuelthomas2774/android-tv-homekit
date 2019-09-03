@@ -16,7 +16,10 @@ import io.github.hapjava.impl.characteristics.common.Name;
 import io.github.hapjava.impl.characteristics.common.ActiveCharacteristic;
 
 public class TelevisionService implements Service {
+    private static final String TAG = "HomeKit:TelevisionService";
     private final TelevisionAccessory accessory;
+    private final PowerStateInterface powerState;
+    private final InputSourceManagerInterface inputSourceManager;
     private final List<InputSourceService> inputSourceServices;
     private HomekitCharacteristicChangeCallback activeCallback;
     private HomekitCharacteristicChangeCallback activeIdentifierCallback;
@@ -25,6 +28,8 @@ public class TelevisionService implements Service {
 
     public TelevisionService(TelevisionAccessory _accessory, List<InputSourceService> _inputSourceServices) {
         accessory = _accessory;
+        powerState = accessory.service.implementation.getPowerStateManager();
+        inputSourceManager = accessory.service.implementation.getInputSourceManager();
         inputSourceServices = _inputSourceServices;
     }
 
@@ -45,11 +50,11 @@ public class TelevisionService implements Service {
             v -> setPowerState(v),
             c -> {
                 activeCallback = c;
-                accessory.service.implementation.getPowerStateManager().onSubscribe(c);
+                powerState.onSubscribe(c);
             },
             () -> {
                 activeCallback = null;
-                accessory.service.implementation.getPowerStateManager().onUnsubscribe();
+                powerState.onUnsubscribe();
             }
         );
         characteristics.add(active);
@@ -60,12 +65,13 @@ public class TelevisionService implements Service {
             v -> setActiveIdentifier(v),
             c -> {
                 activeIdentifierCallback = c;
-                accessory.service.implementation.getInputSourceManager().onSubscribe(c);
+                inputSourceManager.onSubscribe(c);
             },
             () -> {
                 activeIdentifierCallback = null;
-                accessory.service.implementation.getInputSourceManager().onUnsubscribe();
-            }
+                inputSourceManager.onUnsubscribe();
+            },
+            inputSourceServices.size() - 1
         );
         characteristics.add(activeIdentifier);
 
@@ -100,19 +106,19 @@ public class TelevisionService implements Service {
     }
 
     public CompletableFuture<Integer> getPowerState() {
-        boolean on = accessory.service.implementation.getPowerStateManager().getPowerState();
+        boolean on = powerState.getPowerState();
 
-        Log.i("HomeKit:TelevisionService", "getPowerState: " + (on ? "on" : "off"));
+        Log.i(TAG, "getPowerState: " + (on ? "on" : "off"));
 		return CompletableFuture.completedFuture(on ? ActiveCharacteristic.ACTIVE : ActiveCharacteristic.INACTIVE);
     }
 
     public void setPowerState(int active) {
-        Log.i("HomeKit:TelevisionService", "Turn TV " + (active == ActiveCharacteristic.ACTIVE ? "on" : "off"));
-        accessory.service.implementation.getPowerStateManager().setPowerState(active == ActiveCharacteristic.ACTIVE);
+        Log.i(TAG, "Turn TV " + (active == ActiveCharacteristic.ACTIVE ? "on" : "off"));
+        powerState.setPowerState(active == ActiveCharacteristic.ACTIVE);
     }
 
     public CompletableFuture<Integer> getActiveIdentifier() {
-        return accessory.service.implementation.getInputSourceManager().getActiveInput().thenApply(activeInputSource -> {
+        return inputSourceManager.getActiveInput().thenApply(activeInputSource -> {
             InputSourceService activeInputSourceService = null;
 
             for (InputSourceService inputSourceService: inputSourceServices) {
@@ -135,11 +141,11 @@ public class TelevisionService implements Service {
         }
 
         if (activeInputSourceService == null) {
-            Log.i("HomeKit:TelevisionService", "Cannot set ActiveIdentifier to " + Integer.toString(activeIdentifier) + ": unknown InputSource service");
+            Log.i(TAG, "Cannot set ActiveIdentifier to " + Integer.toString(activeIdentifier) + ": unknown InputSource service");
             return;
         }
 
-        accessory.service.implementation.getInputSourceManager().setActiveInput(activeInputSourceService.inputSource);
+        inputSourceManager.setActiveInput(activeInputSourceService.inputSource);
     }
 
     public CompletableFuture<String> getConfiguredName() {
@@ -147,6 +153,6 @@ public class TelevisionService implements Service {
     }
 
     public void setConfiguredName(String configuredName) {
-        Log.i("HomeKit:TelevisionService", "Set configured name " + configuredName);
+        Log.i(TAG, "Set configured name " + configuredName);
     }
 }

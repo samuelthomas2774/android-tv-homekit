@@ -57,34 +57,35 @@ public class InputSourceManager implements InputSourceManagerInterface {
             inputSources.add(tifInputSource);
         }
 
-        try {
-            List<XTvHttp.Application> xtvApplicationInputs = television.xtvhttp.getApplications().get();
-
-            for (XTvHttp.Application application: xtvApplicationInputs) {
-                Log.i(TAG, "Application ID " + application.id + "; Name/Label " + application.label);
-                Log.i(TAG, "Type " + (application.type == XTvHttp.ApplicationType.GAME ? "GAME" : "APP"));
-                Log.i(TAG, "Activity " + application.intent.activity.packageName + "/" + application.intent.activity.className +
-                    "; intent " + application.intent.action);
-
-                if (application.intent.activity.packageName == "org.droidtv.eum") {
-                    if (application.intent.activity.className != "org.droidtv.eum.onehelp.menu.HowToLauncherActivity") continue;
-                }
-                if (application.intent.activity.packageName == "org.droidtv.settings") {
-                    // if (application.intent.activity.className != "org.droidtv.settings.setupmenu.SetupMenuActivity") continue;
-                    continue;
-                }
-                if (application.intent.activity.packageName == "com.android.tv.settings") continue;
-
-                Log.i(TAG, "Registering XTv Application input source " + application.id);
-
-                XTvApplicationInputSource xtvApplicationInputSource = new XTvApplicationInputSource(this, application);
-                xtvApplicationInputSources.add(xtvApplicationInputSource);
-                inputSources.add(xtvApplicationInputSource);
-            }
-        } catch (Exception err) {
-            Log.e(TAG, "Error getting applications: " + err.toString());
-            throw new RuntimeException("Error getting applications", err);
-        }
+        // try {
+        //     List<XTvHttp.Application> xtvApplicationInputs = television.xtvhttp.getApplications().get();
+        //
+        //     for (XTvHttp.Application application: xtvApplicationInputs) {
+        //         Log.i(TAG, "Application ID " + application.id + "; Name/Label " + application.label);
+        //         Log.i(TAG, "Type " + (application.type == XTvHttp.ApplicationType.GAME ? "GAME" : "APP"));
+        //         Log.i(TAG, "Activity " + application.intent.activity.packageName + "/" + application.intent.activity.className +
+        //             "; intent " + application.intent.action);
+        //
+        //         if (application.intent.activity.packageName.contentEquals("org.droidtv.playtv")) continue;
+        //         if (application.intent.activity.packageName.contentEquals("org.droidtv.eum")) {
+        //             if (!application.intent.activity.className.contentEquals("org.droidtv.eum.onehelp.menu.HowToLauncherActivity")) continue;
+        //         }
+        //         if (application.intent.activity.packageName.contentEquals("org.droidtv.settings")) {
+        //             // if (application.intent.activity.className != "org.droidtv.settings.setupmenu.SetupMenuActivity") continue;
+        //             continue;
+        //         }
+        //         if (application.intent.activity.packageName.contentEquals("com.android.tv.settings")) continue;
+        //
+        //         Log.i(TAG, "Registering XTv Application input source " + application.id);
+        //
+        //         XTvApplicationInputSource xtvApplicationInputSource = new XTvApplicationInputSource(this, application);
+        //         xtvApplicationInputSources.add(xtvApplicationInputSource);
+        //         inputSources.add(xtvApplicationInputSource);
+        //     }
+        // } catch (Exception err) {
+        //     Log.e(TAG, "Error getting applications: " + err.toString());
+        //     throw new RuntimeException("Error getting applications", err);
+        // }
     }
 
     public Collection<InputSourceInterface> getInputSources() {
@@ -97,13 +98,15 @@ public class InputSourceManager implements InputSourceManagerInterface {
 
     public CompletableFuture<InputSourceInterface> getActiveInput() {
         return television.xtvhttp.getCurrentActivity().thenApply(activity -> {
-            Log.d(TAG, "Current activity " + activity.packageName + "/" + activity.className);
+            Log.i(TAG, "Current activity " + activity.packageName + "/" + activity.className);
 
-            if (activity.packageName == "com.google.android.tvlauncher") {
+            if (activity.packageName.contentEquals("com.google.android.tvlauncher")) {
                 return homeScreenInputSource;
             }
 
-            if (activity.packageName == "org.droidtv.playtv" && activity.className == "org.droidtv.playtv.PlayTvActivity") {
+            if (activity.packageName.contentEquals("org.droidtv.playtv") &&
+                activity.className.contentEquals("org.droidtv.playtv.PlayTvActivity")
+            ) {
                 String inputid = getCurrentInputSourceId();
                 Log.i(TAG, "Current input source property " + inputid);
 
