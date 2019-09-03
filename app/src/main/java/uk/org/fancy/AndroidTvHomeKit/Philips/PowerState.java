@@ -54,7 +54,7 @@ public class PowerState implements PowerStateInterface {
         Log.i(TAG, "Set power state " + on);
 
         // TODO
-        television.xtvhttp.setPowerState(on ? XTvHttp.PowerState.ON : XTvHttp.PowerState.STANDBY_WAKE_LOCK);
+        television.xtvhttp.setPowerState(on ? XTvHttp.PowerState.ON : XTvHttp.PowerState.STANDBY);
     }
 
     public void onSubscribe(HomekitCharacteristicChangeCallback _callback) {
