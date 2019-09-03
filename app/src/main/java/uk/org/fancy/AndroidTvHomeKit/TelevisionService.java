@@ -9,6 +9,7 @@ import android.util.Log;
 import uk.org.fancy.AndroidTvHomeKit.characteristics.ActiveIdentifier;
 import uk.org.fancy.AndroidTvHomeKit.characteristics.ConfiguredName;
 import uk.org.fancy.AndroidTvHomeKit.characteristics.SleepDiscoveryMode;
+import uk.org.fancy.AndroidTvHomeKit.characteristics.RemoteKey;
 import io.github.hapjava.Service;
 import io.github.hapjava.characteristics.Characteristic;
 import io.github.hapjava.HomekitCharacteristicChangeCallback;
@@ -92,6 +93,14 @@ public class TelevisionService implements Service {
         );
         characteristics.add(sleepDiscoveryMode);
 
+        // Remote Key
+        if (accessory.service.implementation instanceof TelevisionInterface.RemoteInterface) {
+            Characteristic remoteKey = new RemoteKey(key -> {
+                ((TelevisionInterface.RemoteInterface) accessory.service.implementation).sendRemoteKey(getRemoteKey(key));
+            });
+            characteristics.add(remoteKey);
+        }
+
         return Collections.unmodifiableList(characteristics);
     }
 
@@ -154,5 +163,38 @@ public class TelevisionService implements Service {
 
     public void setConfiguredName(String configuredName) {
         Log.i(TAG, "Set configured name " + configuredName);
+    }
+
+    private TelevisionInterface.RemoteInterface.RemoteKey getRemoteKey(int key) {
+        switch (key) {
+            default:
+                return null;
+            case RemoteKey.REWIND:
+                return TelevisionInterface.RemoteInterface.RemoteKey.REWIND;
+            case RemoteKey.FAST_FORWARD:
+                return TelevisionInterface.RemoteInterface.RemoteKey.FAST_FORWARD;
+            case RemoteKey.NEXT_TRACK:
+                return TelevisionInterface.RemoteInterface.RemoteKey.NEXT_TRACK;
+            case RemoteKey.PREVIOUS_TRACK:
+                return TelevisionInterface.RemoteInterface.RemoteKey.PREVIOUS_TRACK;
+            case RemoteKey.ARROW_UP:
+                return TelevisionInterface.RemoteInterface.RemoteKey.ARROW_UP;
+            case RemoteKey.ARROW_DOWN:
+                return TelevisionInterface.RemoteInterface.RemoteKey.ARROW_DOWN;
+            case RemoteKey.ARROW_LEFT:
+                return TelevisionInterface.RemoteInterface.RemoteKey.ARROW_LEFT;
+            case RemoteKey.ARROW_RIGHT:
+                return TelevisionInterface.RemoteInterface.RemoteKey.ARROW_RIGHT;
+            case RemoteKey.SELECT:
+                return TelevisionInterface.RemoteInterface.RemoteKey.SELECT;
+            case RemoteKey.BACK:
+                return TelevisionInterface.RemoteInterface.RemoteKey.BACK;
+            case RemoteKey.EXIT:
+                return TelevisionInterface.RemoteInterface.RemoteKey.EXIT;
+            case RemoteKey.PLAY_PAUSE:
+                return TelevisionInterface.RemoteInterface.RemoteKey.PLAY_PAUSE;
+            case RemoteKey.INFORMATION:
+                return TelevisionInterface.RemoteInterface.RemoteKey.INFORMATION;
+        }
     }
 }

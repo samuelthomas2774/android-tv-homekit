@@ -9,4 +9,24 @@ public interface TelevisionInterface {
 
     public PowerStateInterface getPowerStateManager();
     public InputSourceManagerInterface getInputSourceManager();
+
+    public interface RemoteInterface extends TelevisionInterface {
+        public enum RemoteKey {
+            REWIND,
+            FAST_FORWARD,
+            NEXT_TRACK,
+            PREVIOUS_TRACK,
+            ARROW_UP,
+            ARROW_DOWN,
+            ARROW_LEFT,
+            ARROW_RIGHT,
+            SELECT,
+            BACK,
+            EXIT,
+            PLAY_PAUSE,
+            INFORMATION,
+        }
+
+        public void sendRemoteKey(RemoteKey key);
+    }
 }

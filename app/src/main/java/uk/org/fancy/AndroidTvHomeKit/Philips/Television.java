@@ -8,7 +8,7 @@ import uk.org.fancy.AndroidTvHomeKit.TelevisionInterface;
 import uk.org.fancy.AndroidTvHomeKit.Philips.xtv.XTvHttp;
 // import org.droidtv.tv.persistentstorage.TvSettingsConstants;
 
-public class Television implements TelevisionInterface {
+public class Television implements TelevisionInterface, TelevisionInterface.RemoteInterface {
     private static final String TAG = "HomeKit:Television";
     public final HomeKitService service;
     public final XTvHttp xtvhttp;
@@ -119,9 +119,48 @@ public class Television implements TelevisionInterface {
         return xtvhttp.keypress(key);
     }
 
-    public void sendInputKey(int key) {
-        Log.i(TAG, "Send input key " + Integer.toString(key));
+    public void sendRemoteKey(RemoteKey hapkey) {
+        Log.i(TAG, "Send remote key " + hapkey.toString());
 
-        // TODO
+        String key = getXTvRemoteKey(hapkey);
+        if (key == null) {
+            Log.e(TAG, "Invalid remote key " + hapkey.toString());
+            return;
+        }
+
+        keypress(key);
+    }
+
+    private String getXTvRemoteKey(RemoteKey key) {
+        switch (key) {
+            default:
+                return null;
+            case REWIND:
+                return XTvHttp.RemoteKey.REWIND;
+            case FAST_FORWARD:
+                return XTvHttp.RemoteKey.FAST_FORWARD;
+            // case NEXT_TRACK:
+            //     return XTvHttp.RemoteKey.
+            // case PREVIOUS_TRACK:
+            //     return XTvHttp.RemoteKey.
+            case ARROW_UP:
+                return XTvHttp.RemoteKey.CURSOR_UP;
+            case ARROW_DOWN:
+                return XTvHttp.RemoteKey.CURSOR_DOWN;
+            case ARROW_LEFT:
+                return XTvHttp.RemoteKey.CURSOR_LEFT;
+            case ARROW_RIGHT:
+                return XTvHttp.RemoteKey.CURSOR_RIGHT;
+            case SELECT:
+                return XTvHttp.RemoteKey.CONFIRM;
+            case BACK:
+                return XTvHttp.RemoteKey.BACK;
+            case EXIT:
+                return XTvHttp.RemoteKey.EXIT;
+            case PLAY_PAUSE:
+                return XTvHttp.RemoteKey.PLAY_PAUSE;
+            case INFORMATION:
+                return XTvHttp.RemoteKey.INFO;
+        }
     }
 }

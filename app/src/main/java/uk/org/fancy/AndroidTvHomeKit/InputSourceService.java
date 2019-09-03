@@ -43,11 +43,11 @@ public class InputSourceService implements Service {
         List<Characteristic> characteristics = new LinkedList<>();
 
         if (inputSource instanceof TIFInputSourceInterface) {
-            Characteristic tifid = new TIFID(((TIFInputSourceInterface) inputSource).getId());
+            Characteristic tifid = new TIFID(((TIFInputSourceInterface) inputSource).getTifId());
             characteristics.add(tifid);
         }
         if (inputSource instanceof ApplicationInputSourceInterface) {
-            Characteristic applicationId = new ApplicationID(((ApplicationInputSourceInterface) inputSource).getId());
+            Characteristic applicationId = new ApplicationID(((ApplicationInputSourceInterface) inputSource).getApplicationId());
             characteristics.add(applicationId);
         }
 
