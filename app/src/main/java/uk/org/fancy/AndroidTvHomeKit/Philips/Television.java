@@ -8,12 +8,15 @@ import uk.org.fancy.AndroidTvHomeKit.TelevisionInterface;
 import uk.org.fancy.AndroidTvHomeKit.Philips.xtv.XTvHttp;
 // import org.droidtv.tv.persistentstorage.TvSettingsConstants;
 
-public class Television implements TelevisionInterface, TelevisionInterface.RemoteInterface {
+public class Television implements TelevisionInterface,
+        TelevisionInterface.TelevisionSpeakerInterface,
+        TelevisionInterface.RemoteInterface {
     private static final String TAG = "HomeKit:Television";
     public final HomeKitService service;
     public final XTvHttp xtvhttp;
     private final PowerState powerStateManager = new PowerState(this);
     private final InputSourceManager inputSourceManager;
+    private final TelevisionSpeaker speaker;
     private String name;
     private final String manufacturer = "Philips"; // Hard code for now
     private String model;
@@ -28,6 +31,7 @@ public class Television implements TelevisionInterface, TelevisionInterface.Remo
         service = _service;
         xtvhttp = new XTvHttp(username, password);
         inputSourceManager = new InputSourceManager(this);
+        speaker = new TelevisionSpeaker(this);
 
         loadSystemDetails();
     }
@@ -113,6 +117,10 @@ public class Television implements TelevisionInterface, TelevisionInterface.Remo
 
     public InputSourceManager getInputSourceManager() {
         return inputSourceManager;
+    }
+
+    public TelevisionSpeaker getSpeaker() {
+        return speaker;
     }
 
     public CompletableFuture<Object> keypress(String key) {

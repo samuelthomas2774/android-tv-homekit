@@ -262,6 +262,67 @@ public class XTvHttp {
         });
     }
 
+    public class AudioSettings {
+        public final int MINIMUM_VOLUME;
+        public final int MAXIMUM_VOLUME;
+        public final boolean mute;
+        public final int volume;
+
+        public AudioSettings(int min, int max, boolean mute, int volume) {
+            this.MINIMUM_VOLUME = min;
+            this.MAXIMUM_VOLUME = min;
+            this.mute = mute;
+            this.volume = volume;
+        }
+
+        public AudioSettings(JsonObject audio) {
+            MINIMUM_VOLUME = audio.getInt("min");
+            MAXIMUM_VOLUME = audio.getInt("max");
+            mute = audio.getBoolean("muted");
+            volume = audio.getInt("current");
+        }
+    }
+
+    public CompletableFuture<AudioSettings> getAudioSettings() {
+        return this.get(secureBaseUrl + "audio/volume").thenApply(response -> {
+            String body = response.getResponseBody();
+            return new AudioSettings(Json.createReader(new StringReader(body)).readObject());
+        });
+    }
+
+    public CompletableFuture<Object> setAudioSettings(boolean mute, int volume) {
+        return this.post(secureBaseUrl + "audio/volume", Json.createObjectBuilder()
+            .add("muted", mute)
+            .add("current", volume)
+            .build()
+        ).thenApply(response -> {
+            Log.d(TAG, "POST /audio/volume response " + response.getResponseBody());
+            return null;
+        });
+    }
+
+    public CompletableFuture<Boolean> getMute() {
+        return getAudioSettings().thenApply(audio -> audio.mute);
+    }
+
+    public CompletableFuture<Object> setMute(boolean mute) {
+        if (mute) {
+            return setAudioSettings(mute, 0);
+        } else {
+            return getAudioSettings().thenApply(audio -> {
+                return setAudioSettings(mute, audio.volume);
+            });
+        }
+    }
+
+    public CompletableFuture<Integer> getVolume() {
+        return getAudioSettings().thenApply(audio -> audio.volume);
+    }
+
+    public CompletableFuture<Object> setVolume(int volume) {
+        return setAudioSettings(false, volume);
+    }
+
     public class RemoteKey {
         public static final String STANDBY = "Standby";
         public static final String CURSOR_UP = "CursorUp";

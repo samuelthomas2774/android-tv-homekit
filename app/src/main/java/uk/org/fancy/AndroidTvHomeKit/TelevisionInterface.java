@@ -10,6 +10,10 @@ public interface TelevisionInterface {
     public PowerStateInterface getPowerStateManager();
     public InputSourceManagerInterface getInputSourceManager();
 
+    public interface TelevisionSpeakerInterface extends TelevisionInterface {
+        public uk.org.fancy.AndroidTvHomeKit.TelevisionSpeakerInterface getSpeaker();
+    }
+
     public interface RemoteInterface extends TelevisionInterface {
         public enum RemoteKey {
             REWIND,
