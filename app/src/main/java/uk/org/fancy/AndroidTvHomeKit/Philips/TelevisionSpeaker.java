@@ -3,6 +3,7 @@ package uk.org.fancy.AndroidTvHomeKit.Philips;
 import java.util.concurrent.CompletableFuture;
 import android.util.Log;
 import uk.org.fancy.AndroidTvHomeKit.TelevisionSpeakerInterface;
+import uk.org.fancy.AndroidTvHomeKit.PollThread;
 import uk.org.fancy.AndroidTvHomeKit.Philips.xtv.XTvHttp;
 import io.github.hapjava.HomekitCharacteristicChangeCallback;
 
@@ -11,17 +12,55 @@ public class TelevisionSpeaker implements TelevisionSpeakerInterface,
         TelevisionSpeakerInterface.AbsoluteVolumeInterface {
     private static final String TAG = "HomeKit:TelevisionSpeaker";
     private final Television television;
-    private HomekitCharacteristicChangeCallback muteCallback = null;
-    private HomekitCharacteristicChangeCallback volumeCallback = null;
     private int MINIMUM_VOLUME = 0;
     private int MAXIMUM_VOLUME = 60;
+
+    private HomekitCharacteristicChangeCallback muteCallback = null;
+    private boolean lastMuteState = false;
+    private PollThread.PollInterface pollMute = new PollThread.PollInterface() {
+        public void poll() throws Exception {
+            Log.i(TAG, "Polling mute state; was " + lastMuteState);
+            boolean muteState = lastMuteState;
+            boolean mute = getMute().get();
+
+            if (mute != muteState) {
+                Log.i(TAG, "Mute state changed; now " + mute);
+
+                muteCallback.changed();
+
+                lastMuteState = mute;
+            }
+        }
+    };
+
+    private HomekitCharacteristicChangeCallback volumeCallback = null;
+    private int lastVolume = 0;
+    private PollThread.PollInterface pollVolume = new PollThread.PollInterface() {
+        public void poll() throws Exception {
+            Log.i(TAG, "Polling volume; was " + lastVolume);
+            int oldVolume = lastVolume;
+            int volume = getVolume().get();
+
+            if (volume != oldVolume) {
+                Log.i(TAG, "Volume changed; now " + volume);
+
+                muteCallback.changed();
+
+                lastVolume = volume;
+            }
+        }
+    };
 
     public TelevisionSpeaker(Television _television) {
         television = _television;
     }
 
     public CompletableFuture<Boolean> getMute() {
-        return television.xtvhttp.getMute();
+        return television.xtvhttp.getMute().thenApply(mute -> {
+            lastMuteState = mute;
+
+            return mute;
+        });
     }
 
     public void setMute(boolean mute) {
@@ -31,9 +70,11 @@ public class TelevisionSpeaker implements TelevisionSpeakerInterface,
 
     public void onMuteSubscribe(HomekitCharacteristicChangeCallback callback) {
         muteCallback = callback;
+        television.service.pollThread.add(pollMute);
     }
 
     public void onMuteUnsubscribe() {
+        television.service.pollThread.remove(pollMute);
         muteCallback = null;
     }
 
@@ -61,6 +102,9 @@ public class TelevisionSpeaker implements TelevisionSpeakerInterface,
 
             Log.i(TAG, "Current volume: " + Integer.toString(audio.volume) + "; " + Integer.toString(v) +
                 "; min " + Integer.toString(audio.MINIMUM_VOLUME) + "; max " + Integer.toString(audio.MAXIMUM_VOLUME));
+
+            lastVolume = v;
+
             return v;
         });
     }
@@ -76,9 +120,11 @@ public class TelevisionSpeaker implements TelevisionSpeakerInterface,
 
     public void onVolumeSubscribe(HomekitCharacteristicChangeCallback callback) {
         volumeCallback = callback;
+        television.service.pollThread.add(pollVolume);
     }
 
     public void onVolumeUnsubscribe() {
+        television.service.pollThread.remove(pollVolume);
         volumeCallback = null;
     }
 }

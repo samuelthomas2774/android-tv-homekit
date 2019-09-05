@@ -3,13 +3,15 @@ package uk.org.fancy.AndroidTvHomeKit.Philips;
 import java.lang.reflect.Method;
 import android.util.Log;
 import uk.org.fancy.AndroidTvHomeKit.PowerStateInterface;
+import uk.org.fancy.AndroidTvHomeKit.PollThread;
 import uk.org.fancy.AndroidTvHomeKit.Philips.xtv.XTvHttp;
 import io.github.hapjava.HomekitCharacteristicChangeCallback;
 
-public class PowerState implements PowerStateInterface {
+public class PowerState implements PowerStateInterface, PollThread.PollInterface {
     private static final String TAG = "HomeKit:PowerState";
     private final Television television;
     private HomekitCharacteristicChangeCallback callback = null;
+    private boolean lastPowerState = false;
 
     public PowerState(Television _television) {
         television = _television;
@@ -59,13 +61,23 @@ public class PowerState implements PowerStateInterface {
 
     public void onSubscribe(HomekitCharacteristicChangeCallback _callback) {
         callback = _callback;
-
-        // TODO
+        lastPowerState = getPowerState();
+        television.service.pollThread.add(this);
     }
 
     public void onUnsubscribe() {
+        television.service.pollThread.remove(this);
         callback = null;
+    }
 
-        // TODO
+    public void poll() {
+        boolean powerState = getPowerState();
+        Log.i(TAG, "Polling power state " + powerState + "; was " + lastPowerState);
+
+        if (powerState != lastPowerState) {
+            callback.changed();
+
+            lastPowerState = powerState;
+        }
     }
 }

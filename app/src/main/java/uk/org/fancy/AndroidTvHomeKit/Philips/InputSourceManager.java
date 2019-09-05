@@ -9,12 +9,13 @@ import java.util.List;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvInputInfo;
 import android.util.Log;
+import uk.org.fancy.AndroidTvHomeKit.PollThread;
 import uk.org.fancy.AndroidTvHomeKit.InputSourceManagerInterface;
 import uk.org.fancy.AndroidTvHomeKit.InputSourceInterface;
 import uk.org.fancy.AndroidTvHomeKit.Philips.xtv.XTvHttp;
 import io.github.hapjava.HomekitCharacteristicChangeCallback;
 
-public class InputSourceManager implements InputSourceManagerInterface {
+public class InputSourceManager implements InputSourceManagerInterface, PollThread.PollInterface {
     private static final String TAG = "HomeKit:InputSourceManager";
     public final Television television;
     private final Collection<InputSourceInterface> inputSources = new LinkedList<InputSourceInterface>();
@@ -22,6 +23,7 @@ public class InputSourceManager implements InputSourceManagerInterface {
     private final Collection<XTvApplicationInputSource> xtvApplicationInputSources = new LinkedList<XTvApplicationInputSource>();
     private final Collection<TIFInputSource> tifInputSources = new LinkedList<TIFInputSource>();
     private HomekitCharacteristicChangeCallback callback = null;
+    private InputSourceInterface lastInputSource = null;
 
     public InputSourceManager(Television _television) {
         television = _television;
@@ -136,6 +138,10 @@ public class InputSourceManager implements InputSourceManagerInterface {
             Log.w(TAG, "No input sources match the current activity " + activity.packageName);
 
             return homeScreenInputSource;
+        }).thenApply(inputSource -> {
+            lastInputSource = inputSource;
+
+            return inputSource;
         });
     }
 
@@ -145,13 +151,25 @@ public class InputSourceManager implements InputSourceManagerInterface {
 
     public void onSubscribe(HomekitCharacteristicChangeCallback _callback) {
         callback = _callback;
-
-        // TODO
+        television.service.pollThread.add(this);
     }
 
     public void onUnsubscribe() {
+        television.service.pollThread.remove(this);
         callback = null;
+    }
 
-        // TODO
+    public void poll() throws Exception {
+        Log.i(TAG, "Polling input source; was " + (this.lastInputSource == null ? "unknown" : this.lastInputSource.getId()));
+        InputSourceInterface lastInputSource = this.lastInputSource;
+        InputSourceInterface inputSource = getActiveInput().get();
+
+        if (inputSource != lastInputSource) {
+            Log.i(TAG, "Input source changed; now " + inputSource.getId());
+
+            callback.changed();
+
+            this.lastInputSource = inputSource;
+        }
     }
 }

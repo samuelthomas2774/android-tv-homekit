@@ -40,6 +40,8 @@ public class HomeKitService extends Service {
         return new uk.org.fancy.AndroidTvHomeKit.Philips.Television(this);
     }
 
+    public PollThread pollThread = new PollThread();
+
     private Thread homekitThread = new Thread() {
         public void run() {
             try {
@@ -172,6 +174,7 @@ public class HomeKitService extends Service {
             });
 
             homekitThread.start();
+            pollThread.start();
         } catch (InvalidAlgorithmParameterException e) {
             Log.e(TAG, "InvalidAlgorithmParameterException starting server???");
         }
@@ -194,6 +197,8 @@ public class HomeKitService extends Service {
             accessoryServer = null;
             started = false;
         }
+
+        pollThread.setShouldStop();
 
         wakeLock.release();
         Log.i(TAG, "Released wake lock");
