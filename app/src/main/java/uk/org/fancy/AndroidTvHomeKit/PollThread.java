@@ -9,7 +9,7 @@ import java.util.LinkedList;
 public class PollThread extends Thread {
     private static final String TAG = "HomeKit:PollThread";
     private boolean run = false;
-    private final List<PollInterface> pollList = new LinkedList<PollInterface>();
+    private final LinkedList<PollInterface> pollList = new LinkedList<PollInterface>();
 
     public PollThread() {
         super();
@@ -29,7 +29,12 @@ public class PollThread extends Thread {
             }
             if (!run) break;
 
-            for (PollInterface poll: pollList) {
+            LinkedList<PollInterface> toPoll;
+            synchronized (pollList) {
+                toPoll = (LinkedList<PollInterface>) pollList.clone();
+            }
+
+            for (PollInterface poll: toPoll) {
                 try {
                     poll.poll();
                 } catch (Throwable e) {
