@@ -1,5 +1,6 @@
 package uk.org.fancy.AndroidTvHomeKit.Philips.Ambilight;
 
+import uk.org.fancy.AndroidTvHomeKit.PollThread;
 import uk.org.fancy.AndroidTvHomeKit.Philips.Television;
 import uk.org.fancy.AndroidTvHomeKit.Philips.xtv.XTvAmbilightHttp;
 import java.lang.reflect.Field;
@@ -17,7 +18,7 @@ import io.github.hapjava.impl.characteristics.lightbulb.BrightnessCharacteristic
 import io.github.hapjava.impl.characteristics.lightbulb.HueCharacteristic;
 import io.github.hapjava.impl.characteristics.lightbulb.SaturationCharacteristic;
 
-public class Service implements io.github.hapjava.Service {
+public class Service implements io.github.hapjava.Service, PollThread.PollInterface {
     private static final String TAG = "HomeKit:Ambilight.Service";
     private final Television television;
     private final XTvAmbilightHttp xtvambilight;
@@ -32,10 +33,14 @@ public class Service implements io.github.hapjava.Service {
     private int lastColourSpeed = 0;
     private int lastColourSyncState = ColourSync.OFF;
     private HomekitCharacteristicChangeCallback powerStateCallback;
+    private boolean lastPowerState = false;
     private HomekitCharacteristicChangeCallback colourSyncCallback;
     private HomekitCharacteristicChangeCallback brightnessCallback;
+    private int lastBrightness = 0;
     private HomekitCharacteristicChangeCallback hueCallback;
+    private double lastHue = 0;
     private HomekitCharacteristicChangeCallback saturationCallback;
+    private double lastSaturation = 0;
     private HomekitCharacteristicChangeCallback variationCallback;
     private HomekitCharacteristicChangeCallback variationSpeedCallback;
 
@@ -297,6 +302,7 @@ public class Service implements io.github.hapjava.Service {
         }
 
         setConfiguration(configuration);
+        if (colourSyncCallback != null) colourSyncCallback.changed();
     }
 
     public int range(int value, int frommin, int frommax, int tomin, int tomax) {
@@ -383,10 +389,91 @@ public class Service implements io.github.hapjava.Service {
     }
 
     private void onSubscribe() {
-        //
+        getConfiguration();
+        television.service.pollThread.add(this);
     }
 
     private void onUnsubscribe() {
-        //
+        if (powerStateCallback != null ||
+            colourSyncCallback != null ||
+            brightnessCallback != null ||
+            hueCallback != null ||
+            saturationCallback != null ||
+            variationCallback != null ||
+            variationSpeedCallback != null
+        ) return;
+
+        television.service.pollThread.remove(this);
+    }
+
+    public void poll() throws Exception {
+        int lastColourSync = lastColourSyncState;
+        int lastVariation = (lastColourDelta.hue + lastColourDelta.saturation + lastColourDelta.brightness) / 3;
+        int lastVariationSpeed = lastColourSpeed;
+
+        if (powerStateCallback != null) {
+            boolean powerState = getPowerState().get();
+            Log.i(TAG, "Polling power state " + powerState + "; was " + lastPowerState);
+
+            if (powerState != lastPowerState) {
+                powerStateCallback.changed();
+                lastPowerState = powerState;
+            }
+        }
+
+        if (colourSyncCallback != null) {
+            int colourSync = getColourSync().get();
+            Log.i(TAG, "Polling colour sync state " + Integer.toString(colourSync) + "; was " +
+                Integer.toString(lastColourSync));
+
+            if (colourSync != lastColourSync) colourSyncCallback.changed();
+        }
+
+        if (brightnessCallback != null) {
+            int brightness = getBrightness().get();
+            Log.i(TAG, "Polling brightness " + Integer.toString(brightness) + "; was " +
+                Integer.toString(lastBrightness));
+
+            if (brightness != lastBrightness) {
+                brightnessCallback.changed();
+                lastBrightness = brightness;
+            }
+        }
+
+        if (hueCallback != null) {
+            double hue = getHue().get();
+            Log.i(TAG, "Polling hue " + Double.toString(hue) + "; was " + Double.toString(lastHue));
+
+            if (hue != lastHue) {
+                hueCallback.changed();
+                lastHue = hue;
+            }
+        }
+
+        if (saturationCallback != null) {
+            double saturation = getSaturation().get();
+            Log.i(TAG, "Polling saturation " + Double.toString(saturation) + "; was " +
+                Double.toString(lastSaturation));
+
+            if (saturation != lastSaturation) {
+                saturationCallback.changed();
+                lastSaturation = saturation;
+            }
+        }
+
+        if (variationCallback != null) {
+            int variation = getVariation().get();
+            Log.i(TAG, "Polling variation " + Integer.toString(variation) + "; was " + Integer.toString(lastVariation));
+
+            if (variation != lastVariation) variationCallback.changed();
+        }
+
+        if (variationSpeedCallback != null) {
+            int variationSpeed = getVariationSpeed().get();
+            Log.i(TAG, "Polling variation speed " + Integer.toString(variationSpeed) + "; was " +
+                Integer.toString(lastVariationSpeed));
+
+            if (variationSpeed != lastVariationSpeed) variationSpeedCallback.changed();
+        }
     }
 }
