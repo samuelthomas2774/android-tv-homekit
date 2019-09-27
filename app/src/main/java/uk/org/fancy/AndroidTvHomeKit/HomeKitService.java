@@ -49,6 +49,7 @@ public class HomeKitService extends Service {
                 homekit = new HomekitServer(address, PORT);
                 TelevisionAccessory accessory = new TelevisionAccessory(HomeKitService.this);
                 Advertiser advertiser = new Advertiser((NsdManager) getSystemService(Context.NSD_SERVICE), 31 /* Television */);
+                if (authInfo.isPaired()) advertiser.setDiscoverable(false);
                 accessoryServer = homekit.createStandaloneAccessory(authInfo, accessory, advertiser);
 
                 // Allow unauthenticated requests

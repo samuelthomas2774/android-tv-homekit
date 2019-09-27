@@ -75,6 +75,10 @@ public class AuthInfo implements HomekitAuthInfo {
         return authState.userKeyMap.get(username);
     }
 
+    public boolean isPaired() {
+        return !authState.userKeyMap.isEmpty();
+    }
+
     public void onChange(Consumer<AuthState> _callback) {
         callback = _callback;
         notifyChange();
