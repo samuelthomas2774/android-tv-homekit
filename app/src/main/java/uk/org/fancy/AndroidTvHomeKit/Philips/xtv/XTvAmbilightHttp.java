@@ -601,4 +601,39 @@ public class XTvAmbilightHttp {
     public CompletableFuture<Object> setConfiguration(Colour colour) {
         return setConfiguration(new Configuration(colour));
     }
+
+    public enum Mode {
+        INTERNAL,
+        MANUAL,
+        EXPERT,
+        LOUNGE,
+    }
+
+    public CompletableFuture<Mode> getMode() {
+        return this.get(baseUrl + "mode").thenApply(response -> {
+            String body = response.getResponseBody();
+            Log.d(TAG, "Got /mode response " + body);
+            JsonObject mode = Json.createReader(new StringReader(body)).readObject();
+
+            switch (mode.getString("current")) {
+                default: case "internal": return Mode.INTERNAL;
+                case "manual": return Mode.MANUAL;
+                case "expert": return Mode.EXPERT;
+                case "lounge": return Mode.LOUNGE;
+            }
+        });
+    }
+
+    public CompletableFuture<Object> setMode(Mode mode) {
+        return this.post(baseUrl + "mode", Json.createObjectBuilder()
+            .add("mode", mode == Mode.MANUAL ? "manual" :
+                mode == Mode.EXPERT ? "expert" :
+                mode == Mode.LOUNGE ? "lounge" :
+                "internal")
+            .build()
+        ).thenApply(response -> {
+            Log.d(TAG, "POST /mode response " + response.getResponseBody());
+            return null;
+        });
+    }
 }

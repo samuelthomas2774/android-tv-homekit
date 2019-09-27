@@ -21,6 +21,12 @@ public class Service implements io.github.hapjava.Service {
     private static final String TAG = "HomeKit:Ambilight.Service";
     private final Television television;
     private final XTvAmbilightHttp xtvambilight;
+    private boolean lastTvPowerState = false;
+    private boolean hasEnabledAmbilightAfterTvOff = false;
+    private XTvAmbilightHttp.Configuration lastEnabledConfiguration =
+        new XTvAmbilightHttp.Configuration(XTvAmbilightHttp.Style.FOLLOW_VIDEO);
+    private CompletableFuture<XTvAmbilightHttp.Configuration> lastConfigurationFuture = null;
+    private long lastConfigurationTimestamp = 0;
     private XTvAmbilightHttp.Colour lastColour = new XTvAmbilightHttp.Colour(0, 0, 0);
     private XTvAmbilightHttp.Colour lastColourDelta = new XTvAmbilightHttp.Colour(0, 0, 0);
     private int lastColourSpeed = 0;
@@ -52,49 +58,56 @@ public class Service implements io.github.hapjava.Service {
         // Power
         Characteristic power = new PowerStateCharacteristic(
             () -> getPowerState(), v -> setPowerState(v),
-            c -> powerStateCallback = c, () -> powerStateCallback = null
+            c -> {powerStateCallback = c; onSubscribe();},
+            () -> {powerStateCallback = null; onUnsubscribe();}
         );
         characteristics.add(power);
 
         // Colour Sync
         Characteristic colourSync = new ColourSync(
             () -> getColourSync(), v -> setColourSync(v),
-            c -> colourSyncCallback = c, () -> colourSyncCallback = null
+            c -> {colourSyncCallback = c; onSubscribe();},
+            () -> {colourSyncCallback = null; onUnsubscribe();}
         );
         characteristics.add(colourSync);
 
         // Brightness
         Characteristic brightness = new BrightnessCharacteristic(
             () -> getBrightness(), v -> setBrightness(v),
-            c -> brightnessCallback = c, () -> brightnessCallback = null
+            c -> {brightnessCallback = c; onSubscribe();},
+            () -> {brightnessCallback = null; onUnsubscribe();}
         );
         characteristics.add(brightness);
 
         // Hue
         Characteristic hue = new HueCharacteristic(
             () -> getHue(), v -> setHue(v),
-            c -> hueCallback = c, () -> hueCallback = null
+            c -> {hueCallback = c; onSubscribe();},
+            () -> {hueCallback = null; onUnsubscribe();}
         );
         characteristics.add(hue);
 
         // Saturation
         Characteristic saturation = new SaturationCharacteristic(
             () -> getSaturation(), v -> setSaturation(v),
-            c -> saturationCallback = c, () -> saturationCallback = null
+            c -> {saturationCallback = c; onSubscribe();},
+            () -> {saturationCallback = null; onUnsubscribe();}
         );
         characteristics.add(saturation);
 
         // Colour Variation
         Characteristic variation = new Variation(
             () -> getVariation(), v -> setVariation(v),
-            c -> variationCallback = c, () -> variationCallback = null
+            c -> {variationCallback = c; onSubscribe();},
+            () -> {variationCallback = null; onUnsubscribe();}
         );
         characteristics.add(variation);
 
         // Colour Variation Speed
         Characteristic variationSpeed = new VariationSpeed(
             () -> getVariationSpeed(), v -> setVariationSpeed(v),
-            c -> variationSpeedCallback = c, () -> variationSpeedCallback = null
+            c -> {variationSpeedCallback = c; onSubscribe();},
+            () -> {variationSpeedCallback = null; onUnsubscribe();}
         );
         characteristics.add(variationSpeed);
 
@@ -105,57 +118,87 @@ public class Service implements io.github.hapjava.Service {
         return Collections.emptyList();
     }
 
-    // private static Object getTvSettingsManager() {
-    //     try {
-    //         Class<?> videoManagerClass = Class.forName("org.droidtv.tv.video.ITvVideoManager");
-    //         Field instanceField = videoManagerClass.getDeclaredField("Instance");
-    //         Object instance = instanceField.get(videoManagerClass);
+    private boolean getTvPowerState() {
+        return television.getPowerStateManager().getPowerState();
+    }
 
-    //         Method getInterface = instance.getClass().getMethod("getInterface");
-    //         Object videoManagerInstance = getInterface.invoke(instance);
+    private CompletableFuture<XTvAmbilightHttp.Configuration> getConfiguration() {
+        long now = System.currentTimeMillis();
+        if (now <= (lastConfigurationTimestamp + 2000) && lastConfigurationFuture != null) {
+            return lastConfigurationFuture;
+        }
 
-    //         return videoManagerInstance;
-    //     } catch (Exception e) {
-    //         Log.e(TAG, "Error getting video manager", e);
-    //         return null;
-    //     }
-    // }
+        lastConfigurationTimestamp = now;
+        return lastConfigurationFuture = xtvambilight.getConfiguration().thenApply(configuration -> {
+            if (configuration.style != XTvAmbilightHttp.Style.OFF) {
+                lastEnabledConfiguration = configuration;
+            }
 
-    // private static int getAmbilightMode() {
-    //     try {
-    //         Object videoManagerInstance = getTvSettingsManager();
-    //         if (videoManagerInstance == null) return 0;
-    //         Class<?> videoManagerClass = videoManagerInstance.getClass();
+            if (configuration.style == XTvAmbilightHttp.Style.FOLLOW_COLOUR && configuration.isExpert) {
+                lastColour = configuration.manualColour;
+                lastColourDelta = configuration.manualColourDelta;
+                // lastColourSpeed = configuration.speed;
+            }
 
-    //         Log.i(TAG, "Video manager class " + videoManagerClass.getName());
+            return configuration;
+        });
+    }
 
-    //         Method getString = videoManagerClass.getMethod("getProperty", Integer.class);
-    //         return (int) getString.invoke(videoManagerInstance, 56); // VIDMGR_PROPERTY_AMBILIGHT_MODE = 56
+    private CompletableFuture<Object> setConfiguration(XTvAmbilightHttp.Configuration configuration) {
+        if (!getTvPowerState() && configuration.style != XTvAmbilightHttp.Style.OFF) {
+            hasEnabledAmbilightAfterTvOff = true;
+        } else {
+            hasEnabledAmbilightAfterTvOff = false;
+        }
 
-    //         // 12 == "manual"
-    //         // 13 == "expert"
-    //         // 9 == "lounge"
-    //         // ? == "internal"
-    //     } catch (Exception e) {
-    //         Log.e(TAG, "Error getting video manager", e);
-    //         return 0;
-    //     }
-    // }
+        if (configuration.style != XTvAmbilightHttp.Style.OFF) {
+            lastEnabledConfiguration = configuration;
+        }
+
+        if (configuration.style == XTvAmbilightHttp.Style.FOLLOW_COLOUR && configuration.isExpert) {
+            lastColour = configuration.manualColour;
+            lastColourDelta = configuration.manualColourDelta;
+            // lastColourSpeed = configuration.speed;
+        }
+
+        return xtvambilight.setConfiguration(configuration);
+    }
+    private CompletableFuture<Object> setConfiguration(
+        XTvAmbilightHttp.Colour colour, XTvAmbilightHttp.Colour delta, int speed
+    ) {
+        return setConfiguration(new XTvAmbilightHttp.Configuration(colour, delta, speed));
+    }
 
     public CompletableFuture<Boolean> getPowerState() {
-        // Log.i(TAG, "Ambilight mode: " + Integer.toString(getAmbilightMode()));
-
-        return xtvambilight.getEnabledState().thenApply(enabled -> {
-            return enabled == XTvAmbilightHttp.EnabledState.ON;
+        return getConfiguration().thenApply(configuration -> {
+            if (getTvPowerState()) {
+                return configuration.style != XTvAmbilightHttp.Style.OFF;
+            } else {
+                return hasEnabledAmbilightAfterTvOff = true;
+            }
         });
     }
 
     public void setPowerState(boolean on) {
-        xtvambilight.setEnabledState(on ? XTvAmbilightHttp.EnabledState.ON : XTvAmbilightHttp.EnabledState.OFF);
+        if (on) {
+            // Turn Ambilight on
+            setConfiguration(lastEnabledConfiguration);
+        } else {
+            if (getTvPowerState()) {
+                // Turn Ambilight off, TV is on
+                xtvambilight.setConfiguration(XTvAmbilightHttp.Style.OFF);
+            } else {
+                // Turn Ambilight off, TV is off
+                // Reset to internal mode, which will turn Ambilight off but won't disable it
+                xtvambilight.setMode(XTvAmbilightHttp.Mode.INTERNAL);
+            }
+
+            hasEnabledAmbilightAfterTvOff = false;
+        }
     }
 
     public CompletableFuture<Integer> getColourSync() {
-        return xtvambilight.getConfiguration().thenApply(configuration -> {
+        return getConfiguration().thenApply(configuration -> {
             if (configuration.style == XTvAmbilightHttp.Style.FOLLOW_VIDEO) {
                 switch (configuration.videoAlgorithm) {
                     case STANDARD: return ColourSync.VIDEO_STANDARD;
@@ -253,7 +296,7 @@ public class Service implements io.github.hapjava.Service {
                 configuration = new XTvAmbilightHttp.Configuration(XTvAmbilightHttp.ColourPreset.PTA_LOUNGE); break;
         }
 
-        television.xtvhttp.ambilight.setConfiguration(configuration);
+        setConfiguration(configuration);
     }
 
     public int range(int value, int frommin, int frommax, int tomin, int tomax) {
@@ -268,13 +311,7 @@ public class Service implements io.github.hapjava.Service {
     }
 
     public CompletableFuture<Integer> getBrightness() {
-        return xtvambilight.getConfiguration().thenApply(configuration -> {
-            if (configuration.style == XTvAmbilightHttp.Style.FOLLOW_COLOUR && configuration.isExpert) {
-                lastColour = configuration.manualColour;
-                lastColourDelta = configuration.manualColourDelta;
-                // lastColourSpeed = configuration.speed;
-            }
-
+        return getConfiguration().thenApply(configuration -> {
             // Max is still 255, but 120 seems to be the maximum brightness
             int brightness = range(lastColour.brightness, 120, 100);
             return brightness > 100 ? 100 : brightness;
@@ -284,19 +321,13 @@ public class Service implements io.github.hapjava.Service {
     public void setBrightness(int brightness) {
         Log.i(TAG, "Setting Ambilight brightness " + Integer.toString(brightness));
         lastColour = new XTvAmbilightHttp.Colour(lastColour.hue, lastColour.saturation, range(brightness, 100, 120));
-        television.xtvhttp.ambilight.setConfiguration(lastColour, lastColourDelta, lastColourSpeed);
+        setConfiguration(lastColour, lastColourDelta, lastColourSpeed);
 
         if (brightnessCallback != null) brightnessCallback.changed();
     }
 
     public CompletableFuture<Double> getHue() {
-        return xtvambilight.getConfiguration().thenApply(configuration -> {
-            if (configuration.style == XTvAmbilightHttp.Style.FOLLOW_COLOUR && configuration.isExpert) {
-                lastColour = configuration.manualColour;
-                lastColourDelta = configuration.manualColourDelta;
-                // lastColourSpeed = configuration.speed;
-            }
-
+        return getConfiguration().thenApply(configuration -> {
             return (double) range(lastColour.hue, 255, 360);
         });
     }
@@ -304,19 +335,13 @@ public class Service implements io.github.hapjava.Service {
     public void setHue(double hue) {
         Log.i(TAG, "Setting Ambilight hue " + Double.toString(hue));
         lastColour = new XTvAmbilightHttp.Colour(range((int) hue, 360, 255), lastColour.saturation, lastColour.brightness);
-        television.xtvhttp.ambilight.setConfiguration(lastColour, lastColourDelta, lastColourSpeed);
+        setConfiguration(lastColour, lastColourDelta, lastColourSpeed);
 
         if (hueCallback != null) hueCallback.changed();
     }
 
     public CompletableFuture<Double> getSaturation() {
-        return xtvambilight.getConfiguration().thenApply(configuration -> {
-            if (configuration.style == XTvAmbilightHttp.Style.FOLLOW_COLOUR && configuration.isExpert) {
-                lastColour = configuration.manualColour;
-                lastColourDelta = configuration.manualColourDelta;
-                // lastColourSpeed = configuration.speed;
-            }
-
+        return getConfiguration().thenApply(configuration -> {
             return (double) range(lastColour.saturation, 255, 100);
         });
     }
@@ -324,19 +349,13 @@ public class Service implements io.github.hapjava.Service {
     public void setSaturation(double saturation) {
         Log.i(TAG, "Setting Ambilight saturation " + Double.toString(saturation));
         lastColour = new XTvAmbilightHttp.Colour(lastColour.hue, range((int) saturation, 100, 255), lastColour.brightness);
-        television.xtvhttp.ambilight.setConfiguration(lastColour, lastColourDelta, lastColourSpeed);
+        setConfiguration(lastColour, lastColourDelta, lastColourSpeed);
 
         if (saturationCallback != null) saturationCallback.changed();
     }
 
     public CompletableFuture<Integer> getVariation() {
-        return xtvambilight.getConfiguration().thenApply(configuration -> {
-            if (configuration.style == XTvAmbilightHttp.Style.FOLLOW_COLOUR && configuration.isExpert) {
-                lastColour = configuration.manualColour;
-                lastColourDelta = configuration.manualColourDelta;
-                // lastColourSpeed = configuration.speed;
-            }
-
+        return getConfiguration().thenApply(configuration -> {
             return (lastColourDelta.hue + lastColourDelta.saturation + lastColourDelta.brightness) / 3;
         });
     }
@@ -344,19 +363,13 @@ public class Service implements io.github.hapjava.Service {
     public void setVariation(int variation) {
         Log.i(TAG, "Setting Ambilight colour variation " + Integer.toString(variation));
         lastColourDelta = new XTvAmbilightHttp.Colour(variation, variation, variation);
-        television.xtvhttp.ambilight.setConfiguration(lastColour, lastColourDelta, lastColourSpeed);
+        setConfiguration(lastColour, lastColourDelta, lastColourSpeed);
 
         if (variationCallback != null) variationCallback.changed();
     }
 
     public CompletableFuture<Integer> getVariationSpeed() {
-        return xtvambilight.getConfiguration().thenApply(configuration -> {
-            if (configuration.style == XTvAmbilightHttp.Style.FOLLOW_COLOUR && configuration.isExpert) {
-                lastColour = configuration.manualColour;
-                lastColourDelta = configuration.manualColourDelta;
-                // lastColourSpeed = configuration.speed;
-            }
-
+        return getConfiguration().thenApply(configuration -> {
             return lastColourSpeed;
         });
     }
@@ -364,8 +377,16 @@ public class Service implements io.github.hapjava.Service {
     public void setVariationSpeed(int variation) {
         Log.i(TAG, "Setting Ambilight colour variation speed " + Integer.toString(variation));
         lastColourSpeed = variation;
-        television.xtvhttp.ambilight.setConfiguration(lastColour, lastColourDelta, lastColourSpeed);
+        setConfiguration(lastColour, lastColourDelta, lastColourSpeed);
 
         if (variationSpeedCallback != null) variationSpeedCallback.changed();
+    }
+
+    private void onSubscribe() {
+        //
+    }
+
+    private void onUnsubscribe() {
+        //
     }
 }

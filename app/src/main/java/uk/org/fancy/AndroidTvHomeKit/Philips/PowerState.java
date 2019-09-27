@@ -55,7 +55,6 @@ public class PowerState implements PowerStateInterface, PollThread.PollInterface
     public void setPowerState(boolean on) {
         Log.i(TAG, "Set power state " + on);
 
-        // TODO
         television.xtvhttp.setPowerState(on ? XTvHttp.PowerState.ON : XTvHttp.PowerState.STANDBY);
     }
 
