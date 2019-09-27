@@ -2,15 +2,20 @@ package uk.org.fancy.AndroidTvHomeKit.Philips;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.CompletableFuture;
+import java.util.Collections;
+import java.util.List;
+import java.util.LinkedList;
 import android.util.Log;
 import uk.org.fancy.AndroidTvHomeKit.HomeKitService;
 import uk.org.fancy.AndroidTvHomeKit.TelevisionInterface;
 import uk.org.fancy.AndroidTvHomeKit.Philips.xtv.XTvHttp;
+import io.github.hapjava.Service;
 // import org.droidtv.tv.persistentstorage.TvSettingsConstants;
 
 public class Television implements TelevisionInterface,
         TelevisionInterface.TelevisionSpeakerInterface,
-        TelevisionInterface.RemoteInterface {
+        TelevisionInterface.RemoteInterface,
+        TelevisionInterface.AdditionalServices {
     private static final String TAG = "HomeKit:Television";
     public final HomeKitService service;
     public final XTvHttp xtvhttp;
@@ -109,6 +114,16 @@ public class Television implements TelevisionInterface,
 
     public String getFirmwareRevision() {
         return firmwareRevision;
+    }
+
+    public List<Service> getAdditionalServices() {
+        List<Service> services = new LinkedList<Service>();
+
+        // Ambilight service
+        Service ambilight = new uk.org.fancy.AndroidTvHomeKit.Philips.Ambilight.Service(this);
+        services.add(ambilight);
+
+		return Collections.unmodifiableList(services);
     }
 
     public PowerState getPowerStateManager() {

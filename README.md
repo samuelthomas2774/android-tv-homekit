@@ -67,3 +67,13 @@ public REST API is used instead.
     it doesn't change the digest authentication isn't necessary.
 2. Restlet's digest authentication doesn't seem very stable and crashes a lot in a way that the service is still able
     to run so it has to be restarted manually.
+
+### Custom characteristics
+
+UUID                                 | Name                     |
+-------------------------------------|--------------------------|----
+CA7897C2-4B46-448D-AF68-29C686B730F4 | TV Input Framework ID    | String, read only
+CA7897C3-4B46-448D-AF68-29C686B730F4 | Application ID           | String, read only
+CA7897C4-4B46-448D-AF68-29C686B730F4 | Ambilight Colour Sync    | Enum, 0-19, read/write/event
+CA7897C5-4B46-448D-AF68-29C686B730F4 | Colour Variation         | Integer, 0-255, read/write/event
+CA7897C6-4B46-448D-AF68-29C686B730F4 | Colour Variation Speed   | Integer, 0-255, read/write/event

@@ -21,14 +21,14 @@ public class XTvHttp {
     private final static String TAG = "HomeKit:XTvHttp";
     final static String baseUrl = "http://127.0.0.1:1925/6/";
     final static String secureBaseUrl = "https://127.0.0.1:1926/6/";
-    final static String ambilightBaseUrl = "http://127.0.0.1:1925/6/ambilight/";
     private String username;
     private String password;
-    private final AsyncHttpClient http = new DefaultAsyncHttpClient(
+    protected final AsyncHttpClient http = new DefaultAsyncHttpClient(
         new DefaultAsyncHttpClientConfig.Builder()
             .setUseInsecureTrustManager(true)
             .build()
     );
+    public final XTvAmbilightHttp ambilight = new XTvAmbilightHttp(this);
 
     public XTvHttp(String username, String password) {
         this.username = username;

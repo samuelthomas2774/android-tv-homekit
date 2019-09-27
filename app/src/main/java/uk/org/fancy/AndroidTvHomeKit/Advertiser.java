@@ -136,7 +136,6 @@ public class Advertiser implements HomekitAdvertiser {
         // with other services advertised on the same network.
         serviceInfo.setServiceName(label);
         serviceInfo.setServiceType(SERVICE_TYPE);
-        // serviceInfo.setHost(InetAddress.getByName("192.168.3.254")); // Hard code for now
         serviceInfo.setPort(port);
         serviceInfo.setAttribute("sf", discoverable ? "1" : "0");
         serviceInfo.setAttribute("id", mac);

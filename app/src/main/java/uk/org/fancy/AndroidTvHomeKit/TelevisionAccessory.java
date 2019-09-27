@@ -95,6 +95,14 @@ public class TelevisionAccessory implements HomekitAccessory, Bridge {
 			services.add(inputSourceService);
 		}
 
+		if (service.implementation instanceof TelevisionInterface.AdditionalServices) {
+			for (Service service:
+				((TelevisionInterface.AdditionalServices) service.implementation).getAdditionalServices()
+			) {
+				services.add(service);
+			}
+		}
+
 		return Collections.unmodifiableCollection(services);
     }
 }

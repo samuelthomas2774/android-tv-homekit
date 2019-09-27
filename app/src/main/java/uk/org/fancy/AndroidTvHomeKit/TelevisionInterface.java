@@ -1,5 +1,8 @@
 package uk.org.fancy.AndroidTvHomeKit;
 
+import java.util.List;
+import io.github.hapjava.Service;
+
 public interface TelevisionInterface {
     public String getName();
     public String getManufacturer();
@@ -32,5 +35,9 @@ public interface TelevisionInterface {
         }
 
         public void sendRemoteKey(RemoteKey key);
+    }
+
+    public interface AdditionalServices extends TelevisionInterface {
+        public List<Service> getAdditionalServices();
     }
 }
