@@ -210,7 +210,7 @@ public class XTvHttp {
 
         public Activity(JsonObject activity) {
             this.packageName = activity.getString("packageName");
-            this.className = activity.getString("className");
+            this.className = activity.getString("className") == "NA" ? null : activity.getString("className");
         }
     }
 

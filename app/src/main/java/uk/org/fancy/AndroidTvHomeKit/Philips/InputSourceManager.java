@@ -106,6 +106,26 @@ public class InputSourceManager implements InputSourceManagerInterface, PollThre
                 return homeScreenInputSource;
             }
 
+            if (activity.packageName.contentEquals("com.droidtv.channels") ||
+                // (activity.packageName.contentEquals("com.droidtv.settings") && activity.className.contentEquals("com.droidtv.settings.quicksettings.QuickSettingsActivity")) ||
+                // (activity.packageName.contentEquals("com.droidtv.settings") && activity.className.contentEquals("com.droidtv.settings.AmbilightOsd")) ||
+                // (activity.packageName.contentEquals("com.droidtv.settings") && activity.className.contentEquals("com.droidtv.settings.multiview.MultiviewDrawerActivity")) ||
+                // (activity.packageName.contentEquals("com.droidtv.settings") && activity.className.contentEquals("com.droidtv.settings.common.AutoPowerDownActivity")) ||
+                // (activity.packageName.contentEquals("com.droidtv.settings") && activity.className.contentEquals("com.droidtv.settings.common.LowBatteryWarningActivity")) ||
+                // (activity.packageName.contentEquals("com.droidtv.settings") && activity.className.contentEquals("com.droidtv.settings.common.MessageDialogActivity")) ||
+                // (activity.packageName.contentEquals("com.droidtv.settings") && activity.className.contentEquals("com.droidtv.settings.common.HDRSignalDetectedDialogActivity")) ||
+                activity.packageName.contentEquals("com.droidtv.settings") ||
+                activity.packageName.contentEquals("com.android.tv.settings") ||
+                activity.packageName.contentEquals("org.droidtv.philipstvdrawer") ||
+                activity.packageName.contentEquals("android") ||
+                activity.packageName.contentEquals("com.google.android.tv.remote.service") ||
+                activity.packageName.contentEquals("com.google.android.apps.mediashell") ||
+                activity.packageName.contentEquals("com.google.android.tvrecommendations")
+            ) {
+                // If showing the source/channel list or any overlays return the last active input source
+                return lastInputSource != null ? lastInputSource : homeScreenInputSource;
+            }
+
             if (activity.packageName.contentEquals("org.droidtv.playtv") &&
                 activity.className.contentEquals("org.droidtv.playtv.PlayTvActivity")
             ) {
@@ -124,8 +144,8 @@ public class InputSourceManager implements InputSourceManagerInterface, PollThre
 
             List<XTvApplicationInputSource> matchingApplicationInputSources = new LinkedList<XTvApplicationInputSource>();
             for (XTvApplicationInputSource inputSource: xtvApplicationInputSources) {
-                if (inputSource.application.intent.activity.packageName == activity.packageName) {
-                    if (inputSource.application.intent.activity.className == activity.className) return inputSource;
+                if (inputSource.application.intent.activity.packageName.contentEquals(activity.packageName)) {
+                    if (inputSource.application.intent.activity.className.contentEquals(activity.className)) return inputSource;
 
                     matchingApplicationInputSources.add(inputSource);
                 }
@@ -136,6 +156,10 @@ public class InputSourceManager implements InputSourceManagerInterface, PollThre
             if (matchingApplicationInputSources.size() == 1) return matchingApplicationInputSources.get(0);
 
             Log.w(TAG, "No input sources match the current activity " + activity.packageName);
+
+            // activities/current returns org.droidtv.epgdata for all NetTv apps
+            // NetTv apps (for example org.droidtv.nettvapp4340) launch org.droidtv.nettv_launcherapp, which launches
+            // org.droidtv.epgdata
 
             return homeScreenInputSource;
         }).thenApply(inputSource -> {
