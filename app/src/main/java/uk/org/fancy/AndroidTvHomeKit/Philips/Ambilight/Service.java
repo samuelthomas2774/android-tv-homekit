@@ -176,11 +176,11 @@ public class Service implements io.github.hapjava.Service, PollThread.PollInterf
 
     public CompletableFuture<Boolean> getPowerState() {
         return getConfiguration().thenApply(configuration -> {
-            if (getTvPowerState()) {
-                return configuration.style != XTvAmbilightHttp.Style.OFF;
-            } else {
-                return hasEnabledAmbilightAfterTvOff = true;
+            if (configuration.style == XTvAmbilightHttp.Style.OFF) {
+                return false;
             }
+
+            return getTvPowerState() || hasEnabledAmbilightAfterTvOff;
         });
     }
 
