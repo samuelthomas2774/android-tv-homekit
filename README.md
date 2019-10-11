@@ -21,7 +21,7 @@ At the moment there's no UI and TV-specific API credentials are hardcoded in the
 
 1. Create a pairing for the TV. [You can use Pylips for this.](https://github.com/eslavnov/pylips)
 2. Add the username and password to
-    [app/src/main/java/uk/org/fancy/AndroidTvHomeKit/Philips/Television.java](app/src/main/java/uk/org/fancy/AndroidTvHomeKit/Philips/Television.java#L24-25).
+    [app/src/main/java/uk/org/fancy/AndroidTvHomeKit/Philips/Television.java](app/src/main/java/uk/org/fancy/AndroidTvHomeKit/Philips/Television.java#L32-33).
     ```java
     private final String username = "...";
     private final String password = "...";
@@ -29,7 +29,7 @@ At the moment there's no UI and TV-specific API credentials are hardcoded in the
 3. Disable unauthenticated requests. (Optional but recommended if you don't need to access the HAP server directly.)
 
     In
-    [app/src/main/java/uk/org/fancy/AndroidTvHomeKit/HomeKitService.java](app/src/main/java/uk/org/fancy/AndroidTvHomeKit/HomeKitService.java#L53)
+    [app/src/main/java/uk/org/fancy/AndroidTvHomeKit/HomeKitService.java](app/src/main/java/uk/org/fancy/AndroidTvHomeKit/HomeKitService.java#L56)
     replace
     ```java
     // Allow unauthenticated requests
