@@ -64,7 +64,7 @@ public class XTvUtil {
     public static String generateServerNonce() {
         long timestamp = System.currentTimeMillis();
         String hash1 = hash(timestamp + ":" + digestAuthNonceKey);
-        return Base64.encodeToString((timestamp + ":" + hash1).getBytes(), Base64.DEFAULT);
+        return Base64.encodeToString((timestamp + ":" + hash1).getBytes(), Base64.DEFAULT | Base64.NO_WRAP);
     }
 
     public static String generateDigestResponse(String username, String password, String method, String url, String nonce) {
