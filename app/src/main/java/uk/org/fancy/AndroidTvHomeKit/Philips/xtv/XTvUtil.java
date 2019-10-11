@@ -4,10 +4,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import android.util.Base64;
 import android.util.Log;
 
 public class XTvUtil {
@@ -20,9 +20,9 @@ public class XTvUtil {
         if (data.endsWith("\n")) data = data.substring(0, data.length() - 1);
 
         try {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(Base64.getDecoder().decode(encryptionKey), 0, 16, "AES");
+            SecretKeySpec secretKeySpec = new SecretKeySpec(Base64.decode(encryptionKey, Base64.DEFAULT), 0, 16, "AES");
 
-            byte[] decoded = Base64.getDecoder().decode(data);
+            byte[] decoded = Base64.decode(data, Base64.DEFAULT);
             byte[] iv = new byte[16];
             System.arraycopy(decoded, 0, iv, 0, 16);
             IvParameterSpec ivSpec = new IvParameterSpec(iv);
@@ -41,7 +41,7 @@ public class XTvUtil {
 
     public static String encrypt(String data) {
         try {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(Base64.getDecoder().decode(encryptionKey), 0, 16, "AES");
+            SecretKeySpec secretKeySpec = new SecretKeySpec(Base64.decode(encryptionKey, Base64.DEFAULT), 0, 16, "AES");
 
             byte[] iv = new byte[16];
             (new SecureRandom()).nextBytes(iv);
@@ -54,7 +54,7 @@ public class XTvUtil {
             byte[] result = new byte[(iv.length + encrypted.length)];
             System.arraycopy(iv, 0, result, 0, iv.length);
             System.arraycopy(encrypted, 0, result, iv.length, encrypted.length);
-            return Base64.getEncoder().encodeToString(result);
+            return Base64.encodeToString(result, Base64.DEFAULT);
         } catch (Exception e) {
             Log.e(TAG, "Error encrypting " + data + ": " + e.toString());
             return null;
@@ -64,7 +64,7 @@ public class XTvUtil {
     public static String generateServerNonce() {
         long timestamp = System.currentTimeMillis();
         String hash1 = hash(timestamp + ":" + digestAuthNonceKey);
-        return Base64.getEncoder().encodeToString((timestamp + ":" + hash1).getBytes());
+        return Base64.encodeToString((timestamp + ":" + hash1).getBytes(), Base64.DEFAULT);
     }
 
     public static String generateDigestResponse(String username, String password, String method, String url, String nonce) {

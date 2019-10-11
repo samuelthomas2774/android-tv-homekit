@@ -70,7 +70,7 @@ public REST API is used instead.
 
 ### Custom characteristics
 
-UUID                                 | Name                     |
+UUID                                 | Name                     | -
 -------------------------------------|--------------------------|----
 CA7897C2-4B46-448D-AF68-29C686B730F4 | TV Input Framework ID    | String, read only
 CA7897C3-4B46-448D-AF68-29C686B730F4 | Application ID           | String, read only
