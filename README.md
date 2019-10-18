@@ -14,6 +14,25 @@ username/password. Uses some bits I reverse engineered from the XTv service (the
 - [ ] Disable unauthenticated requests for the release build
 - [ ] Read the username and password from a file created by the setup interface
 
+### Requirements
+
+To build:
+
+- Java
+- Android SDK (API 25)
+
+To run:
+
+- Android 8 Oreo
+- A compatible TV:
+    - Philips TV with xtv API 6.0 or later (see [usage](#usage))
+
+This requires Android 8.0 (API 26) but targets Android 7.1 (API 25) because Android 8 add restrictions on apps running
+in the background. Android 8 is only required for
+[Async Http Client](https://github.com/AsyncHttpClient/async-http-client) - for Android 7 support this could probably
+be replaced with another library.
+[Other TVs can be supported by returning a different implementation in HomeKitService](app/src/main/java/uk/org/fancy/AndroidTvHomeKit/HomeKitService.java#L39).
+
 Usage
 ---
 
